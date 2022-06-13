@@ -16,7 +16,7 @@ return new class extends Migration {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('url')->unique();
+            $table->string('urlFile')->unique();
             $table->timestamps();
         });
     }
