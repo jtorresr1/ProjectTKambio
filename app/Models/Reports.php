@@ -9,7 +9,7 @@ class Reports extends Model
 {
     use HasFactory;
 
-    protected $fillable =['title', 'url'];
+    protected $fillable =['title', 'urlFile'];
 
 
 }
