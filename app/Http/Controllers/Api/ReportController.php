@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReportRequest;
+use App\Jobs\StoreExcel;
 use App\Models\Reports;
-use App\Models\User;
 use DateTime;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use Maatwebsite\Excel\Facades\Excel;
 
 
 class ReportController extends Controller
@@ -55,7 +52,13 @@ class ReportController extends Controller
      */
     public function show(Reports $reports)
     {
-        Storage::download('$reports->report_link');
+        if (!$reports->report_link) {
+            return response()->json([
+                'message' => 'Does not  exist report link for that report'
+            ], 404);
+        }
+
+        Storage::download($reports->report_link);
         return response()->json([
             'report' => $reports
         ], 200);
@@ -66,8 +69,8 @@ class ReportController extends Controller
         $dateStart = DateTime::createFromFormat('d-m-Y', $startDate)->format('Y-m-d');
         $dateEnd = DateTime::createFromFormat('d-m-Y', $endDate)->format('Y-m-d');
 
-        $fileName = "User" . date('Y-m-d H:i:s') . ".xlsx";
-        Excel::store(new UsersExport($dateStart, $dateEnd), $fileName);
+        $fileName = "Users_" . date('Y-m-d H:i:s') . ".xlsx";
+        StoreExcel::dispatch($dateStart, $dateEnd, $fileName);
 
         return $fileName;
     }
