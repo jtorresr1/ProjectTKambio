@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Exports\UsersExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreReportRequest;
 use App\Models\Reports;
 use App\Models\User;
 use DateTime;
@@ -33,7 +34,7 @@ class ReportController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreReportRequest $request)
     {
         $report = new Reports();
         $report->title = $request->description;
@@ -50,11 +51,14 @@ class ReportController extends Controller
      * Display the specified resource.
      *
      * @param \App\Models\Reports $reports
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show(Reports $reports)
     {
-        return Storage::download('$reports->report_link');
+        Storage::download('$reports->report_link');
+        return response()->json([
+            'report' => $reports
+        ], 200);
     }
 
     private function generateExcel(string $startDate, string $endDate): string
