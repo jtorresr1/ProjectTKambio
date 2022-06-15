@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReportRequest;
 use App\Jobs\StoreExcel;
 use App\Models\Reports;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
 
@@ -18,7 +19,18 @@ class ReportController extends Controller
      */
     public function index()
     {
-        $reports = Reports::orderBy('id', 'desc')->paginate(10);
+        $key = "report";
+        if(request()->page){
+            $key = $key . request()->page;
+        }
+
+        if(Cache::has($key)){
+            $reports = Cache::get($key);
+        }else{
+            $reports = Reports::orderBy('id', 'desc')->paginate(8);
+            Cache::put($key, $reports);
+        }
+
         return response()->json([
             'reports' => $reports
         ], 200);
@@ -37,6 +49,8 @@ class ReportController extends Controller
         $report->title = $request->description;
         $report->report_link = $this->generateExcel($request->startDate, $request->endDate);
         $report->save();
+
+        Cache::flush();
 
         return response()->json([
             'message' => "Report saved successful",
