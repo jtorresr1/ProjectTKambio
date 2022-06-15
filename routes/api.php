@@ -19,5 +19,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 */
+Route::controller(ReportController::class)->group(function (){
+    Route::get('list-reports', 'index') -> name("reports.index");
+    Route::post('generate-report', 'store') -> name("reports.store");
+    Route::get('/get-report/{report_id}', 'show') ->name("reports.show");
+    Route::post('/get-report/{report_id}/download', 'download') ->name("reports.download");
+});
 
-Route::apiResource('reports', ReportController::class);
