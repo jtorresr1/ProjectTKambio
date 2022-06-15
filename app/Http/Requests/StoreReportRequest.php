@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Exceptions\CustomAuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreReportRequest extends FormRequest
@@ -13,7 +14,7 @@ class StoreReportRequest extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,12 +24,15 @@ class StoreReportRequest extends FormRequest
      */
     public function rules()
     {
-        $minRangeAvailable = strtotime('1980-01-01');
-        $maxRangeAvailable= strtotime('-18 years');
         return [
             'description' => 'required',
-            'startDate' => 'required|date|after_or_equal:'.$minRangeAvailable . '|before:'.$maxRangeAvailable,
-            'endDate' => 'required|date|after:startDate|before_or_equal:'.$maxRangeAvailable,
+            'startDate' => 'required|date|after_or_equal:'.Date('1980-01-01') .'|before:'. Date('2010-12-31'),
+            'endDate' => 'required|date|after:startDate|before_or_equal:'. Date('2010-12-31'),
         ];
+    }
+
+    protected function failedAuthorization()
+    {
+        throw new CustomAuthorizationException;
     }
 }

@@ -3,10 +3,10 @@
 namespace App\Exports;
 
 use App\Models\User;
-use DateTime;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class UsersExport implements FromCollection
+class UsersExport implements FromCollection, WithHeadings
 {
     private $firstDate;
     private $endDate;
