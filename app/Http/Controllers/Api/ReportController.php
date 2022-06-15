@@ -47,7 +47,9 @@ class ReportController extends Controller
 
         $report = new Reports();
         $report->title = $request->description;
-        $report->report_link = $this->generateExcel($request->startDate, $request->endDate);
+        $report->file = $this->generateExcel($request->startDate, $request->endDate);
+        $report->save();
+        $report->report_link = url("/get-report/". $report->id ."/download");
         $report->save();
 
         Cache::flush();
@@ -77,7 +79,7 @@ class ReportController extends Controller
     public function download($id)
     {
         $reports = Reports::findOrFail($id);
-        return Storage::download($reports->report_link);
+        return Storage::download("Excel/" . $reports->file);
     }
 
     private function generateExcel(string $startDate, string $endDate): string

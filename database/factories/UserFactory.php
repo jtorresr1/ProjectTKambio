@@ -21,8 +21,8 @@ class UserFactory extends Factory
 
     public function definition()
     {
-        $minRangeAvailable = strtotime('1980-01-01');
-        $maxRangeAvailable = strtotime('2010-12-31');
+        $minRangeAvailable = Date('1980-01-01');
+        $maxRangeAvailable = Date('2010-12-31');
         return [
             'name' => $this->faker->name(),
             'birth_date' => $this->faker->dateTimeBetween($minRangeAvailable, $maxRangeAvailable),

@@ -38,6 +38,6 @@ class StoreExcel implements ShouldQueue
      */
     public function handle()
     {
-        Excel::store(new UsersExport($this->dateStart, $this->dateEnd), $this->fileName);
+        Excel::store(new UsersExport($this->dateStart, $this->dateEnd), "/Excel/" .$this->fileName);
     }
 }
