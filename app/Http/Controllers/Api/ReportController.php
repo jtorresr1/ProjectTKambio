@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReportRequest;
 use App\Jobs\StoreExcel;
 use App\Models\Reports;
-use DateTime;
 use Illuminate\Support\Facades\Storage;
 
 
@@ -19,7 +18,7 @@ class ReportController extends Controller
      */
     public function index()
     {
-        $reports = Reports::all();
+        $reports = Reports::orderBy('id', 'desc')->paginate(10);
         return response()->json([
             'reports' => $reports
         ], 200);
@@ -33,6 +32,7 @@ class ReportController extends Controller
      */
     public function store(StoreReportRequest $request)
     {
+
         $report = new Reports();
         $report->title = $request->description;
         $report->report_link = $this->generateExcel($request->startDate, $request->endDate);
@@ -50,28 +50,30 @@ class ReportController extends Controller
      * @param \App\Models\Reports $reports
      * @return \Illuminate\Http\JsonResponse
      */
-    public function show(Reports $reports)
+    public function show($id)
     {
-        if (!$reports->report_link) {
-            return response()->json([
-                'message' => 'Does not  exist report link for that report'
-            ], 404);
-        }
+        $reports = Reports::findOrFail($id);
 
-        Storage::download($reports->report_link);
         return response()->json([
             'report' => $reports
         ], 200);
     }
 
+
+    public function download($id)
+    {
+        $reports = Reports::findOrFail($id);
+        return Storage::download($reports->report_link);
+    }
+
     private function generateExcel(string $startDate, string $endDate): string
     {
-        $dateStart = DateTime::createFromFormat('d-m-Y', $startDate)->format('Y-m-d');
-        $dateEnd = DateTime::createFromFormat('d-m-Y', $endDate)->format('Y-m-d');
+        # $dateStart = DateTime::createFromFormat('d-m-Y', $startDate)->format('Y-m-d');
+        # $dateEnd = DateTime::createFromFormat('d-m-Y', $endDate)->format('Y-m-d');
 
         $fileName = "Users_" . date('Y-m-d H:i:s') . ".xlsx";
-        StoreExcel::dispatch($dateStart, $dateEnd, $fileName);
-
+        # StoreExcel::dispatch($dateStart, $dateEnd, $fileName);
+        StoreExcel::dispatch($startDate, $endDate, $fileName);
         return $fileName;
     }
 
