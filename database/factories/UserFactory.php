@@ -7,18 +7,18 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory
  */
 class UserFactory extends Factory
 {
+
+    protected $model = User::class;
 
     /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
      */
-    protected $model = User::class;
-
     public function definition()
     {
         $minRangeAvailable = Date('1980-01-01');
@@ -40,7 +40,7 @@ class UserFactory extends Factory
      */
     public function unverified()
     {
-        return $this->state(function (array $attributes) {
+        return $this->state(function () {
             return [
                 'email_verified_at' => null,
             ];
