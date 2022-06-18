@@ -8,8 +8,8 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class UsersExport implements FromCollection, WithHeadings
 {
-    private $firstDate;
-    private $endDate;
+    private string $firstDate;
+    private string $endDate;
 
     public function __construct(string $firstDate, string $endDate)
     {
@@ -20,13 +20,13 @@ class UsersExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        return User::select("id", "name", "email", "birth_date")
-            ->whereBetween('birth_date',[$this->firstDate, $this->endDate])
+        return User::select('id', 'name', 'email', 'birth_date')
+            ->whereBetween('birth_date', [$this->firstDate, $this->endDate])
             ->get();
     }
 
     public function headings(): array
     {
-        return ["ID", "Name", "Email", "Birth Date"];
+        return ['ID', 'Name', 'Email', 'Birth Date'];
     }
 }

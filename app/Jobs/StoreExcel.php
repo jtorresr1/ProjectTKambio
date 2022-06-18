@@ -13,7 +13,10 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class StoreExcel implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable;
+    use InteractsWithQueue;
+    use Queueable;
+    use SerializesModels;
 
     private $dateStart;
     private $dateEnd;
@@ -38,6 +41,6 @@ class StoreExcel implements ShouldQueue
      */
     public function handle()
     {
-        Excel::store(new UsersExport($this->dateStart, $this->dateEnd), "/Excel/" .$this->fileName);
+        Excel::store(new UsersExport($this->dateStart, $this->dateEnd), '/Excel/' .$this->fileName);
     }
 }

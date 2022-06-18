@@ -2,16 +2,16 @@
 
 namespace App\Http\Requests;
 
-use App\Exceptions\CustomAuthorizationException;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Date;
 
 class StoreReportRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
+    * Determine if the user is authorized to make this request.
+    *
+    * @return bool
+    */
     public function authorize()
     {
         return true;
@@ -29,10 +29,5 @@ class StoreReportRequest extends FormRequest
             'startDate' => 'required|date|after_or_equal:'.Date('1980-01-01') .'|before:'. Date('2010-12-31'),
             'endDate' => 'required|date|after:startDate|before_or_equal:'. Date('2010-12-31'),
         ];
-    }
-
-    protected function failedAuthorization()
-    {
-        throw new CustomAuthorizationException;
     }
 }

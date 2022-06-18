@@ -11,5 +11,4 @@ class Reports extends Model
 
     protected $fillable =['title', 'file', 'report_link'];
 
-
 }

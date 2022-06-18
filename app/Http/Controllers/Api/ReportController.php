@@ -4,29 +4,62 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreReportRequest;
-use App\Jobs\StoreExcel;
 use App\Models\Reports;
+use App\Services\GeneratorExcel;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @OA\Info(
+ *      version="1.0.0",
+ *      title="TKambio Documentation",
+ *      description="Api TKambio challengue",
+ *      @OA\Contact(
+ *          email="jaimetr97@gmail.com"
+ *      ),
+ *      @OA\License(
+ *          name="Apache 2.0",
+ *          url="http://www.apache.org/licenses/LICENSE-2.0.html"
+ *      )
+ * )
+ * @OA\Server(url="http://localhost:8000/api")
+ */
 
 class ReportController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *     path="/list-reports",
+     *     summary="Show all reports",
+     *     tags={"ReportController"},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Show all reports.",
+     *         @OA\JsonContent(
+     *          @OA\Property(
+     *             property="data",
+     *             type="array",
+     *             @OA\Items(ref="#/components/schemas/ReportsDTO")
+     *          )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="default",
+     *         description="Bad request."
+     *     )
+     * )
      *
-     * @return \Illuminate\Http\JsonResponse|\Illuminate\Http\Response
      */
     public function index()
     {
-        $key = "report";
-        if(request()->page){
+        $key = 'report';
+        if (request()->page) {
             $key = $key . request()->page;
         }
 
-        if(Cache::has($key)){
+        if (Cache::has($key)) {
             $reports = Cache::get($key);
-        }else{
+        } else {
             $reports = Reports::orderBy('id', 'desc')->paginate(8);
             Cache::put($key, $reports);
         }
@@ -37,60 +70,111 @@ class ReportController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Post(
+     *      path="/generate-report",
+     *      tags={"ReportController"},
+     *      summary="Generate new report",
+     *      description="Returns report data",
+     *      @OA\RequestBody(
+     *          required=true,
+     *          @OA\JsonContent(ref="#/components/schemas/StoreReportRequestDTO")
+     *      ),
+     *      @OA\Response(
+     *          response=201,
+     *          description="Successful generate",
+     *          @OA\JsonContent(ref="#/components/schemas/ReportsDTO")
+     *       ),
+     *      @OA\Response(
+     *          response=400,
+     *          description="Bad Request"
+     *      ),
+     *     @OA\Response(
+     *          response=422,
+     *          description="Bad Store Report Request"
+     *      )
+     * )
      */
-    public function store(StoreReportRequest $request)
+    public function store(StoreReportRequest $reportRequest)
     {
-
+        $generatorOfExcel = new GeneratorExcel();
         $report = new Reports();
-        $report->title = $request->description;
-        $report->file = $this->generateExcel($request->startDate, $request->endDate);
+        $report->title = $reportRequest->get('description');
+        $report->file = $generatorOfExcel->generate($reportRequest->get('startDate'), $reportRequest->get('endDate'));
         $report->save();
-        $report->report_link = url("/get-report/". $report->id ."/download");
+        $report->report_link = url('/get-report/' . $report->id . '/download');
         $report->save();
 
         Cache::flush();
 
         return response()->json([
-            'message' => "Report saved successful",
+            'message' => 'Report saved successful',
             'report' => $report
         ], 201);
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param \App\Models\Reports $reports
-     * @return \Illuminate\Http\JsonResponse
+     * @OA\Get(
+     *      path="/get-report/{report_id}",
+     *      tags={"ReportController"},
+     *      summary="Get a specific report",
+     *      description="Returns report data",
+     *     @OA\Parameter(
+     *          name="report_id",
+     *          description="Report id",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful generate",
+     *          @OA\JsonContent(ref="#/components/schemas/ReportsDTO")
+     *       ),
+     *     @OA\Response(
+     *          response=404,
+     *          description="Not Found Request"
+     *      )
+     * )
      */
-    public function show($id)
+    public function show($reportId)
     {
-        $reports = Reports::findOrFail($id);
+        $reports = Reports::findOrFail($reportId);
 
         return response()->json([
             'report' => $reports
         ], 200);
     }
 
-
-    public function download($id)
+    /**
+     * @OA\Get (
+     *      path="/get-report/{report_id}/download",
+     *      tags={"ReportController"},
+     *      summary="Download a specific report",
+     *      description="Returns Excel file",
+     *     @OA\Parameter(
+     *          name="report_id",
+     *          description="Report id",
+     *          required=true,
+     *          in="path",
+     *          @OA\Schema(
+     *              type="integer"
+     *          )
+     *      ),
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful generate",
+     *       ),
+     *     @OA\Response(
+     *          response=404,
+     *          description="Not Found Request"
+     *      )
+     * )
+     */
+    public function download($reportId)
     {
-        $reports = Reports::findOrFail($id);
-        return Storage::download("Excel/" . $reports->file);
+        $reports = Reports::findOrFail($reportId);
+        return Storage::download('Excel/' . $reports->file);
     }
-
-    private function generateExcel(string $startDate, string $endDate): string
-    {
-        # $dateStart = DateTime::createFromFormat('d-m-Y', $startDate)->format('Y-m-d');
-        # $dateEnd = DateTime::createFromFormat('d-m-Y', $endDate)->format('Y-m-d');
-
-        $fileName = "Users_" . date('Y-m-d H:i:s') . ".xlsx";
-        # StoreExcel::dispatch($dateStart, $dateEnd, $fileName);
-        StoreExcel::dispatch($startDate, $endDate, $fileName);
-        return $fileName;
-    }
-
 }
