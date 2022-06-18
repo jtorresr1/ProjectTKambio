@@ -2,14 +2,18 @@
 
 namespace Database\Factories;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
+ * @extends Factory
  */
 class UserFactory extends Factory
 {
+
+    protected $model = User::class;
+
     /**
      * Define the model's default state.
      *
@@ -17,8 +21,11 @@ class UserFactory extends Factory
      */
     public function definition()
     {
+        $minRangeAvailable = Date('1980-01-01');
+        $maxRangeAvailable = Date('2010-12-31');
         return [
             'name' => $this->faker->name(),
+            'birth_date' => $this->faker->dateTimeBetween($minRangeAvailable, $maxRangeAvailable),
             'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
@@ -33,7 +40,7 @@ class UserFactory extends Factory
      */
     public function unverified()
     {
-        return $this->state(function (array $attributes) {
+        return $this->state(function () {
             return [
                 'email_verified_at' => null,
             ];
